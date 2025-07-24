@@ -76,7 +76,7 @@ class TweetBot(discord.Client):
         if not self.check_tweets.is_running():
             self.check_tweets.start()
 
-    @tasks.loop(minutes=120) 
+    @tasks.loop(minutes=180) 
     async def check_tweets(self):
         try:
             channel = self.get_channel(DISCORD_CHANNEL_ID)
