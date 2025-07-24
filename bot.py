@@ -5,7 +5,8 @@ import asyncio
 import os
 import json
 from dotenv import load_dotenv
-
+from threading import Thread
+from http.server import HTTPServer, BaseHTTPRequestHandler
 load_dotenv()
 
 DISCORD_TOKEN = os.getenv("discord_token")
@@ -15,6 +16,22 @@ TWITTER_USERNAME = os.getenv("twitter_username")
 
 intents = discord.Intents.default()
 intents.message_content = True
+
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b'Discord Bot is running!')
+    
+    def log_message(self, format, *args):
+        pass
+
+def run_server():
+    port = int(os.environ.get('PORT', 8000))
+    server = HTTPServer(('0.0.0.0', port), HealthHandler)
+    print(f"Health check server running on port {port}")
+    server.serve_forever()
 
 class TweetBot(discord.Client):
     def __init__(self, **kwargs):
@@ -119,6 +136,7 @@ class TweetBot(discord.Client):
 client = TweetBot(intents=intents)
 
 if __name__ == "__main__":
+    Thread(target=run_server, daemon=True).start()
     try:
         client.run(DISCORD_TOKEN)
     except discord.LoginFailure:
